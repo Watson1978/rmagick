@@ -296,6 +296,8 @@ END_MINGW
       have_func('snprintf', headers)
       [
         'GetImageChannelEntropy', # 6.9.0-0
+        'RotationalBlurImage',            # 6.8.8-9
+        'RotationalBlurImageChannel',     # 6.8.8-9
         'SetImageGray' # 6.9.1-10
       ].each do |func|
         have_func(func, headers)
@@ -310,6 +312,10 @@ END_MINGW
       # Miscellaneous constants
       $defs.push("-DRUBY_VERSION_STRING=\"ruby #{RUBY_VERSION}\"")
       $defs.push("-DRMAGICK_VERSION_STRING=\"RMagick #{RMAGICK_VERS}\"")
+
+      if Gem::Version.new($magick_version) >= Gem::Version.new('6.8.0')
+        $defs.push('-DIMAGEMAGICK_GREATER_THAN_EQUAL_6_8=1')
+      end
 
       create_header
     end
