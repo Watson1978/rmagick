@@ -3,6 +3,7 @@ language: ruby
 cache:
   directories:
     - ~/.ccache
+    - ImageMagick-source
     - vendor/bundle
 
 os:

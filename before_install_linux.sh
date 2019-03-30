@@ -1,4 +1,4 @@
-set -euo pipefail
+set -euox pipefail
 
 sudo apt-get update
 
@@ -16,24 +16,35 @@ if [ ! -d /usr/include/freetype ]; then
 fi
 
 if [ -v IMAGEMAGICK_VERSION ]; then
-  wget http://www.imagemagick.org/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
-  tar -xf ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
-  cd ImageMagick-${IMAGEMAGICK_VERSION}
+
+  if [ -d ImageMagick-source/ImageMagick-${IMAGEMAGICK_VERSION} ]; then
+    cd ImageMagick-source/ImageMagick-${IMAGEMAGICK_VERSION}
+  else
+    mkdir -p ImageMagick-source
+    cd ImageMagick-source
+
+    wget http://www.imagemagick.org/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
+    tar -xf ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
+    cd ImageMagick-${IMAGEMAGICK_VERSION}
+
+    options="--with-magick-plus-plus=no --disable-docs"
+    if [ -v CONFIGURE_OPTIONS ]; then
+      options="${CONFIGURE_OPTIONS} $options"
+    fi
+
+    CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr $options
+
+    make -j
+  fi
+
+  sudo make install -j
+  cd ..
 else
   echo "you must specify an ImageMagick version."
   echo "example: 'IMAGEMAGICK_VERSION=6.8.9-10 bash ./before_install_linux.sh'"
   exit 1
 fi
 
-options="--with-magick-plus-plus=no --disable-docs"
-if [ -v CONFIGURE_OPTIONS ]; then
-  options="${CONFIGURE_OPTIONS} $options"
-fi
-
-CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr $options
-
-make -j
-sudo make install -j
 cd ..
 sudo ldconfig
 
