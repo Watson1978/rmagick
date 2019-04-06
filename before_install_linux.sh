@@ -15,40 +15,44 @@ if [ ! -d /usr/include/freetype ]; then
   sudo ln -sf /usr/include/freetype2 /usr/include/freetype
 fi
 
-dir_options=""
+project_dir=`pwd`
+build_dir=${project_dir}/build-ImageMagick/ImageMagick-${IMAGEMAGICK_VERSION}
 if [ -v CONFIGURE_OPTIONS ]; then
-  dir_options=$CONFIGURE_OPTIONS
+  build_dir=${build_dir}-${CONFIGURE_OPTIONS}
 fi
 
-if [ -v IMAGEMAGICK_VERSION ]; then
-  if [ -d build-ImageMagick/ImageMagick-${IMAGEMAGICK_VERSION}-${dir_options} ]; then
-    cd build-ImageMagick/ImageMagick-${IMAGEMAGICK_VERSION}-${dir_options}
+build_imagemagick() {
+  mkdir -p build-ImageMagick
+
+  version=(${IMAGEMAGICK_VERSION//./ })
+  if (( "${version[0]}${version[1]}" >= 69 )); then
+    wget https://github.com/ImageMagick/ImageMagick6/archive/${IMAGEMAGICK_VERSION}.tar.gz
+    tar -xf ${IMAGEMAGICK_VERSION}.tar.gz
+    mv ImageMagick6-${IMAGEMAGICK_VERSION} ${build_dir}
   else
-    mkdir -p build-ImageMagick
-
-    version=(${IMAGEMAGICK_VERSION//./ })
-    if (( "${version[0]}${version[1]}" >= 69 )); then
-      wget https://github.com/ImageMagick/ImageMagick6/archive/${IMAGEMAGICK_VERSION}.tar.gz
-      tar -xf ${IMAGEMAGICK_VERSION}.tar.gz
-      mv ImageMagick6-${IMAGEMAGICK_VERSION} build-ImageMagick/ImageMagick-${IMAGEMAGICK_VERSION}-${dir_options}
-    else
-      wget http://www.imagemagick.org/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
-      tar -xf ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
-      mv ImageMagick-${IMAGEMAGICK_VERSION} build-ImageMagick/ImageMagick-${IMAGEMAGICK_VERSION}-${dir_options}
-    fi
-
-    cd build-ImageMagick/ImageMagick-${IMAGEMAGICK_VERSION}-${dir_options}
-
-    options="--with-magick-plus-plus=no --disable-docs"
-    if [ -v CONFIGURE_OPTIONS ]; then
-      options="${CONFIGURE_OPTIONS} $options"
-    fi
-
-    CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr $options
-
-    make -j
+    wget http://www.imagemagick.org/download/releases/ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
+    tar -xf ImageMagick-${IMAGEMAGICK_VERSION}.tar.xz
+    mv ImageMagick-${IMAGEMAGICK_VERSION} ${build_dir}
   fi
 
+  cd ${build_dir}
+
+  options="--with-magick-plus-plus=no --disable-docs"
+  if [ -v CONFIGURE_OPTIONS ]; then
+    options="${CONFIGURE_OPTIONS} $options"
+  fi
+
+  CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr $options
+
+  make -j
+}
+
+if [ -v IMAGEMAGICK_VERSION ]; then
+  if [ ! -d $build_dir ]; then
+    build_imagemagick
+  fi
+
+  cd ${build_dir}
   sudo make install -j
   cd ../..
 else
