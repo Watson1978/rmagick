@@ -10,6 +10,12 @@ sudo apt-get install -y build-essential libx11-dev libxext-dev zlib1g-dev \
   liblcms2-dev libpng-dev libjpeg-dev libfreetype6-dev libxml2-dev \
   libtiff5-dev libwebp-dev vim ghostscript ccache
 
+if [ ! -v IMAGEMAGICK_VERSION ]; then
+  echo "you must specify an ImageMagick version."
+  echo "example: 'IMAGEMAGICK_VERSION=6.8.9-10 bash ./before_install_linux.sh'"
+  exit 1
+fi
+
 if [ ! -d /usr/include/freetype ]; then
   # If `/usr/include/freetype` is not existed, ImageMagick 6.7 configuration fails about Freetype.
   sudo ln -sf /usr/include/freetype2 /usr/include/freetype
@@ -35,31 +41,23 @@ build_imagemagick() {
     mv ImageMagick-${IMAGEMAGICK_VERSION} ${build_dir}
   fi
 
-  cd ${build_dir}
-
   options="--with-magick-plus-plus=no --disable-docs"
   if [ -v CONFIGURE_OPTIONS ]; then
     options="${CONFIGURE_OPTIONS} $options"
   fi
 
+  cd $build_dir
   CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr $options
-
   make -j
 }
 
-if [ -v IMAGEMAGICK_VERSION ]; then
-  if [ ! -d $build_dir ]; then
-    build_imagemagick
-  fi
-
-  cd ${build_dir}
-  sudo make install -j
-  cd ../..
-else
-  echo "you must specify an ImageMagick version."
-  echo "example: 'IMAGEMAGICK_VERSION=6.8.9-10 bash ./before_install_linux.sh'"
-  exit 1
+if [ ! -d $build_dir ]; then
+  build_imagemagick
 fi
+
+cd $build_dir
+sudo make install -j
+cd $project_dir
 
 sudo ldconfig
 
