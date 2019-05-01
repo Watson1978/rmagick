@@ -1,12 +1,11 @@
 language: ruby
 
 cache:
-  - apt: true
+  - ccache
+  - bundler
 
 cache:
   directories:
-    - ~/.ccache
-    - vendor/bundle
     - build-ImageMagick
 
 os:
