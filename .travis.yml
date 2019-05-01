@@ -2,6 +2,8 @@ language: ruby
 
 cache:
   - apt: true
+
+cache:
   directories:
     - ~/.ccache
     - vendor/bundle
