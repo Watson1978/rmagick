@@ -79,7 +79,7 @@ static void *rm_calloc(size_t size)
  */
 static void *rm_realloc(void *ptr, size_t size)
 {
-    return xrealloc(ptr, (long)size);
+    return xrealloc(ptr, size);
 }
 
 
