@@ -122,14 +122,14 @@ Init_RMagick2(void)
 {
     VALUE observable;
 
+
+    Module_Magick = rb_define_module("Magick");
+
     set_managed_memory();
 
     MagickCoreGenesis("RMagick", MagickFalse);
 
     test_Magick_version();
-
-    Module_Magick = rb_define_module("Magick");
-
 
     /*-----------------------------------------------------------------------*/
     /* Create IDs for frequently used methods, etc.                          */
