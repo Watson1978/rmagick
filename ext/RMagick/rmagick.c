@@ -379,15 +379,20 @@ VALUE
 Magick_set_log_event_mask(int argc, VALUE *argv, VALUE class)
 {
     int x;
+    VALUE args;
 
     if (argc == 0)
     {
         rb_raise(rb_eArgError, "wrong number of arguments (at least 1 required)");
     }
+
+    args = rb_ary_new();
     for (x = 0; x < argc; x++)
     {
         (void) SetLogEventMask(StringValuePtr(argv[x]));
+        rb_ary_store(args, x, argv[x]);
     }
+    rb_cvar_set(class, rb_intern("@@log_event_mask"), args);
     return class;
 }
 
@@ -418,6 +423,7 @@ VALUE
 Magick_set_log_format(VALUE class, VALUE format)
 {
     SetLogFormat(StringValuePtr(format));
+    rb_cvar_set(class, rb_intern("@@log_format"), format);
     return class;
 }
 
