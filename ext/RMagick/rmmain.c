@@ -60,9 +60,9 @@ static void features_constant(void);
  * @param size the size of memory to allocate
  * @return pointer to a block of memory
  */
-static void *rm_malloc(size_t size)
+static void *rm_calloc(size_t size)
 {
-    return xmalloc((long)size);
+    return xcalloc(1, size);
 }
 
 
@@ -105,7 +105,7 @@ static void rm_free(void *ptr)
  */
 static void set_managed_memory(void)
 {
-    SetMagickMemoryMethods(rm_malloc, rm_realloc, rm_free);
+    SetMagickMemoryMethods(rm_calloc, rm_realloc, rm_free);
     rb_define_const(Module_Magick, "MANAGED_MEMORY", Qtrue);
 }
 
