@@ -422,9 +422,9 @@ Magick_set_log_event_mask(int argc, VALUE *argv, VALUE class)
 VALUE
 Magick_set_log_format(VALUE class, VALUE format)
 {
-    // SetLogFormat(StringValuePtr(format));
-    // rb_cvar_set(class, rb_intern("@@log_format"), format);
-    // RB_GC_GUARD(format);
+    SetLogFormat(StringValuePtr(format));
+    rb_cvar_set(class, rb_intern("@@log_format"), format);
+    RB_GC_GUARD(format);
     return class;
 }
 
