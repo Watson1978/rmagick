@@ -22,28 +22,28 @@ IM_REVISION = Gem::Version.new(Regexp.last_match(2))
 
 FreezeError = RUBY_VERSION > '2.5' ? FrozenError : RuntimeError
 
-Dir.glob(File.join(__dir__, 'lib/**/*.rb')) do |file|
-  require file
-end
+# Dir.glob(File.join(__dir__, 'lib/**/*.rb')) do |file|
+#   require file
+# end
 
 Dir.glob(File.join(__dir__, 'appearance/**/*.rb')) do |file|
   require file
 end
 
-require 'Draw.rb'
-require 'Enum.rb'
-require 'Fill.rb'
-require 'Image1.rb'
-require 'Image2.rb'
-require 'Image3.rb'
-require 'ImageList1.rb'
-require 'ImageList2.rb'
-require 'Image_attributes.rb'
-require 'Import_Export.rb'
-require 'Info.rb'
-require 'KernelInfo.rb'
-require 'Magick.rb'
-require 'Pixel.rb'
-require 'PolaroidOptions.rb'
-require 'Preview.rb'
-require 'Struct.rb'
+# require 'Draw.rb'
+# require 'Enum.rb'
+# require 'Fill.rb'
+# require 'Image1.rb'
+# require 'Image2.rb'
+# require 'Image3.rb'
+# require 'ImageList1.rb'
+# require 'ImageList2.rb'
+# require 'Image_attributes.rb'
+# require 'Import_Export.rb'
+# require 'Info.rb'
+# require 'KernelInfo.rb'
+# require 'Magick.rb'
+# require 'Pixel.rb'
+# require 'PolaroidOptions.rb'
+# require 'Preview.rb'
+# require 'Struct.rb'
