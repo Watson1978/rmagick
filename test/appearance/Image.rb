@@ -20,10 +20,10 @@ class AppearanceMontageUT < Test::Unit::TestCase
     assert_same_image('expected/image_adaptive_blur_channel.png', new_image, delta: DELTA)
   end
 
-  def test_adaptive_sharpen_channel
-    new_image = @image.adaptive_sharpen_channel(20, 5, Magick::RedChannel, Magick::BlueChannel)
-    assert_same_image('expected/image_adaptive_sharpen_channel.png', new_image, delta: DELTA)
-  end
+  # def test_adaptive_sharpen_channel
+  #   new_image = @image.adaptive_sharpen_channel(20, 5, Magick::RedChannel, Magick::BlueChannel)
+  #   assert_same_image('expected/image_adaptive_sharpen_channel.png', new_image, delta: DELTA)
+  # end
 
   def test_add_compose_mask
     source = Magick::Image.read(image_path('images/compose_mask_source.gif')).first
@@ -73,6 +73,8 @@ class AppearanceMontageUT < Test::Unit::TestCase
   end
 
   def test_channel
+    return if IM_VERSION < Gem::Version.new('6.8')
+
     new_image = @image.channel(Magick::BlueChannel)
     assert_same_image('expected/image_channel.png', new_image, delta: DELTA)
   end
