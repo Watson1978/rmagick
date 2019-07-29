@@ -295,6 +295,17 @@ class AppearanceMontageUT < Test::Unit::TestCase
     assert_same_image('expected/image_polaroid.png', new_image, delta: DELTA)
   end
 
+  def test_posterize
+    new_image = @image.posterize(10)
+    assert_same_image('expected/image_posterize.png', new_image, delta: DELTA)
+  end
+
+  def test_quantize
+    new_image = @image.quantize(256, Magick::RGBColorspace, true, 2, true)
+    assert_same_image('expected/image_quantize.png', new_image, delta: DELTA)
+  end
+
+
   def image_path(path)
     File.expand_path(File.join(__dir__, path))
   end
