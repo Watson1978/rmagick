@@ -280,14 +280,19 @@ class AppearanceMontageUT < Test::Unit::TestCase
   def test_ordered_dither
     img = Magick::Image.read(IMAGES_DIR + '/Button_0.gif').first
     new_image = img.ordered_dither(4)
-    assert_same_image('expected/image_ordered_dither.gif', new_image)
+    assert_same_image('expected/image_ordered_dither.gif', new_image, delta: DELTA)
   end
 
   def test_paint_transparent
     img = Magick::Image.read(IMAGES_DIR + '/Button_0.gif').first
     target_color = img.pixel_color(0, 0)
     new_image = img.paint_transparent(target_color, true, 100, alpha: Magick::TransparentAlpha)
-    assert_same_image('expected/image_paint_transparent.gif', new_image)
+    assert_same_image('expected/image_paint_transparent.gif', new_image, delta: DELTA)
+  end
+
+  def test_polaroid
+    new_image = @image.polaroid(10)
+    assert_same_image('expected/image_polaroid.png', new_image, delta: DELTA)
   end
 
   def image_path(path)
