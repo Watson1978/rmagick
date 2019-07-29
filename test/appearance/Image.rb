@@ -12,7 +12,7 @@ class AppearanceMontageUT < Test::Unit::TestCase
   include AppearanceAssertion
 
   def setup
-    @image = Magick::Image.read(File.join(IMAGES_DIR, 'Flower_Hat.jpg')).first
+    @image = Magick::Image.read(image_path('images/Flower_Hat.png')).first
   end
 
   # def test_adaptive_blur_channel
@@ -26,13 +26,12 @@ class AppearanceMontageUT < Test::Unit::TestCase
   end
 
   def test_add_compose_mask
-    img = Magick::Image.read(IMAGES_DIR + '/Flower_Hat.jpg').first
     source = Magick::Image.read(image_path('images/compose_mask_source.gif')).first
     mask = Magick::Image.read(image_path('images/compose_mask.gif')).first
 
-    img.add_compose_mask(source)
-    img.add_compose_mask(mask)
-    new_image = img.composite(source, Magick::CenterGravity, Magick::BlendCompositeOp)
+    @image.add_compose_mask(source)
+    @image.add_compose_mask(mask)
+    new_image = @image.composite(source, Magick::CenterGravity, Magick::BlendCompositeOp)
     assert_same_image('expected/image_add_compose_mask.jpg', new_image)
   end
 
@@ -259,7 +258,7 @@ class AppearanceMontageUT < Test::Unit::TestCase
 
   def test_oil_paint
     new_image = @image.oil_paint(5.0)
-    assert_same_image('expected/image_oil_paint.jpg', new_image, delta: DELTA)
+    assert_same_image('expected/image_oil_paint.jpg', new_image)
   end
 
   def test_opaque
