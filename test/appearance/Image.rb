@@ -6,7 +6,7 @@ require 'test/unit/ui/console/testrunner'
 require_relative 'appearance_assertion'
 
 IMAGES_DIR = File.expand_path('../../doc/ex/images') unless defined? IMAGES_DIR
-DELTA = 0.0015
+DELTA = 0.00001
 
 class AppearanceMontageUT < Test::Unit::TestCase
   include AppearanceAssertion
@@ -15,10 +15,10 @@ class AppearanceMontageUT < Test::Unit::TestCase
     @image = Magick::Image.read(image_path('images/Small_Flower_Hat.png')).first
   end
 
-  # def test_adaptive_blur_channel
-  #   new_image = @image.adaptive_blur_channel(20, 5, Magick::RedChannel, Magick::BlueChannel)
-  #   assert_same_image('expected/image_adaptive_blur_channel.png', new_image, delta: DELTA)
-  # end
+  def test_adaptive_blur_channel
+    new_image = @image.adaptive_blur_channel(20, 5, Magick::RedChannel, Magick::BlueChannel)
+    assert_same_image('expected/image_adaptive_blur_channel.png', new_image, delta: DELTA)
+  end
 
   def test_adaptive_sharpen_channel
     new_image = @image.adaptive_sharpen_channel(20, 5, Magick::RedChannel, Magick::BlueChannel)
@@ -145,10 +145,10 @@ class AppearanceMontageUT < Test::Unit::TestCase
     assert_same_image('expected/image_convolve_channel.png', new_image, delta: DELTA)
   end
 
-  # def test_cycle_colormap
-  #   new_image = @image.cycle_colormap(100)
-  #   assert_same_image('expected/image_cycle_colormap.png', new_image)
-  # end
+  def test_cycle_colormap
+    new_image = @image.cycle_colormap(100)
+    assert_same_image('expected/image_cycle_colormap.png', new_image)
+  end
 
   def test_equalize
     new_image = @image.equalize
@@ -225,11 +225,11 @@ class AppearanceMontageUT < Test::Unit::TestCase
     assert_same_image('expected/image_linear_stretch.png', new_image, delta: DELTA)
   end
 
-  # def test_matte_flood_fill
-  #   target_color = @image.pixel_color(100, 100)
-  #   new_image = @image.matte_flood_fill(target_color, 100, 100, Magick::FillToBorderMethod, alpha: 0.5)
-  #   assert_same_image('expected/image_matte_flood_fill.png', new_image, delta: DELTA)
-  # end
+  def test_matte_flood_fill
+    target_color = @image.pixel_color(100, 100)
+    new_image = @image.matte_flood_fill(target_color, 100, 100, Magick::FillToBorderMethod, alpha: 0.5)
+    assert_same_image('expected/image_matte_flood_fill.png', new_image, delta: DELTA)
+  end
 
   def test_modulate
     new_image = @image.modulate(0.5, 0.5, 0.5)
