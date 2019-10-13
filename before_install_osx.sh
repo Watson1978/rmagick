@@ -11,7 +11,7 @@ cd ImageMagick-${IMAGEMAGICK_VERSION}
 pwd
 ls
 
-./configure
+./configure --without-xml
 make
 sudo make install
 cd ..
