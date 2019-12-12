@@ -62,7 +62,7 @@ build_imagemagick() {
   fi
 
   cd $build_dir
-  CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr --with-gs-font-dir=/usr/share/fonts/type1/gsfonts $options
+  CC="ccache cc" CXX="ccache c++" ./configure --prefix=/usr $options
   make -j
 }
 
