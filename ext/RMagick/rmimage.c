@@ -65,9 +65,11 @@ static VALUE array_from_images(Image *);
 static void call_trace_proc(Image *, const char *);
 static VALUE file_arg_rescue(VALUE, VALUE ATTRIBUTE_UNUSED) ATTRIBUTE_NORETURN;
 static VALUE rm_trace_creation_handle_exception(VALUE, VALUE) ATTRIBUTE_NORETURN;
+static void  rm_image_destroy(void *);
 
 static const char *BlackPointCompensationKey = "PROFILE:black-point-compensation";
 
+#define MakeImageObject(class, obj) Data_Wrap_Struct(class, NULL, rm_image_destroy, obj);
 
 /**
  * Returns the alpha value from the hash.
@@ -5877,7 +5879,7 @@ Image_dup(VALUE self)
     VALUE dup;
 
     (void) rm_check_destroyed(self);
-    dup = Data_Wrap_Struct(CLASS_OF(self), NULL, rm_image_destroy, NULL);
+    dup = MakeImageObject(CLASS_OF(self), NULL);
     RB_GC_GUARD(dup);
 
     return rb_funcall(dup, rm_ID_initialize_copy, 1, self);
@@ -9876,7 +9878,7 @@ Image_alloc(VALUE class)
 {
     VALUE image_obj;
 
-    image_obj = Data_Wrap_Struct(class, NULL, rm_image_destroy, NULL);
+    image_obj = MakeImageObject(class, NULL);
 
     RB_GC_GUARD(image_obj);
 
@@ -9997,7 +9999,7 @@ rm_image_new(Image *image)
 
     (void) rm_trace_creation(image);
 
-    return Data_Wrap_Struct(Class_Image, NULL, rm_image_destroy, image);
+    return MakeImageObject(Class_Image, image);
 }
 
 
@@ -16673,7 +16675,8 @@ void rm_trace_creation(Image *image)
  *
  * @param img the image
  */
-void rm_image_destroy(void *img)
+static void
+rm_image_destroy(void *img)
 {
     Image *image = (Image *)img;
 
