@@ -264,7 +264,7 @@ rm_check_destroyed(VALUE obj)
 {
     Image *image;
 
-    Data_Get_Struct(obj, Image, image);
+    GetImageStruct(obj, image);
     if (!image)
     {
         rb_raise(Class_DestroyedImageError, "destroyed image");
