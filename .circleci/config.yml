@@ -51,6 +51,9 @@ shared: &shared
         command: |
           bash before_install_linux.sh
 
+    - restore_cache:
+        key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+
     - run:
         name: install dependencies
         command: |
