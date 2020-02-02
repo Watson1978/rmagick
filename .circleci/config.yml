@@ -60,7 +60,7 @@ shared: &shared
         key: v1-imagemagick
 
     - restore_cache:
-        key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+        key: v1-dependencies-{{ checksum "rmagick.gemspec" }}
 
     - run:
         name: install dependencies
@@ -70,7 +70,7 @@ shared: &shared
     - save_cache:
         paths:
           - ./vendor/bundle
-        key: v1-dependencies-{{ checksum "Gemfile.lock" }}
+        key: v1-dependencies-{{ checksum "rmagick.gemspec" }}
 
     - run:
         name: run tests
