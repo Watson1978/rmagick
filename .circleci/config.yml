@@ -56,7 +56,7 @@ shared: &shared
 
     - save_cache:
         paths:
-          - build-ImageMagick
+          - ./build-ImageMagick
         key: v1-imagemagick
 
     - restore_cache:
