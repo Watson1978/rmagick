@@ -102,7 +102,6 @@ module RMagick
 
         dir_paths = search_paths_for_library_for_windows
         $CPPFLAGS = %(-I"#{dir_paths[:include]}")
-        $CPPFLAGS << ' -D__USE_MINGW_ANSI_STDIO=1'
         $LDFLAGS = %(-L"#{dir_paths[:lib]}")
         $LDFLAGS << ' -lucrt' if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.4.0')
 
@@ -124,7 +123,7 @@ module RMagick
       end
 
       $CFLAGS << (have_macro('__GNUC__') ? ' -std=gnu99' : ' -std=c99')
-      $CFLAGS << " $(warnflags) -Werror"
+      $CFLAGS << " $(warnflags)"
     end
 
     # Test for a specific value in an enum type

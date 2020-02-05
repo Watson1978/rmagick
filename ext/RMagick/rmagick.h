@@ -35,6 +35,18 @@
 #include "ruby.h"
 #include "ruby/io.h"
 
+#if defined(__MINGW32__)
+    #if SIZEOF_SIZE_T == SIZEOF_LONG
+    # define RMIuSIZE "lu"
+    # define RMIdSIZE "ld"
+    #elif SIZEOF_SIZE_T == SIZEOF_LONG_LONG
+    # define RMIuSIZE "I64u"
+    # define RMIdSIZE "I64d"
+    #endif
+#else
+    # define RMIuSIZE PRIuSIZE
+    # define RMIdSIZE PRIdSIZE
+#endif
 
 // Undef Ruby's versions of these symbols
 #undef PACKAGE_VERSION
