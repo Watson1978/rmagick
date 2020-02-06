@@ -39,11 +39,11 @@
     #if SIZEOF_SIZE_T == SIZEOF_LONG
     # define RMIuSIZE "lu"
     # define RMIdSIZE "ld"
-    # define RMIsVALUE "%li"
+    # define RMIsVALUE "%li\v"
     #elif SIZEOF_SIZE_T == SIZEOF_LONG_LONG
     # define RMIuSIZE "I64u"
     # define RMIdSIZE "I64d"
-    # define RMIsVALUE "%I64i"
+    # define RMIsVALUE "%I64i\v"
     #endif
 #else
     # define RMIuSIZE PRIuSIZE
