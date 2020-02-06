@@ -1754,6 +1754,7 @@ Init_RMagick2(void)
     SetErrorHandler(rm_error_handler);
     SetWarningHandler(rm_warning_handler);
 
+    fprintf(stderr, "*** PRIsVALUE = "PRIsVALUE"\n");
     RB_GC_GUARD(observable);
 }
 
