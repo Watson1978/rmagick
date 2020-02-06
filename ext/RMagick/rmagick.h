@@ -39,13 +39,16 @@
     #if SIZEOF_SIZE_T == SIZEOF_LONG
     # define RMIuSIZE "lu"
     # define RMIdSIZE "ld"
+    # define PMIsVALUE "%li\v"
     #elif SIZEOF_SIZE_T == SIZEOF_LONG_LONG
     # define RMIuSIZE "I64u"
     # define RMIdSIZE "I64d"
+    # define PMIsVALUE "%I64i\v"
     #endif
 #else
     # define RMIuSIZE PRIuSIZE
     # define RMIdSIZE PRIdSIZE
+    # define RMIsVALUE PRIsVALUE
 #endif
 
 // Undef Ruby's versions of these symbols
