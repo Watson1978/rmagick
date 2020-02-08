@@ -17,27 +17,27 @@ jobs:
   #       bundle install --jobs 4 --retry 3
   #       STYLE_CHECKS=true bundle exec rubocop
 
-  test-linux:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        ruby-version: [2.3, 2.4, 2.5, 2.6, 2.7]
-        imagemagick-version: [6.7.7-10, 6.8.9-10, 6.9.10-90, 7.0.9-20]
+  # test-linux:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       ruby-version: [2.3, 2.4, 2.5, 2.6, 2.7]
+  #       imagemagick-version: [6.7.7-10, 6.8.9-10, 6.9.10-90, 7.0.9-20]
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set up Ruby ${{ matrix.ruby-version }}
-      uses: eregon/use-ruby-action@master
-      with:
-        ruby-version: ${{ matrix.ruby-version }}
-    - name: Update/Install packages
-      run: |
-        IMAGEMAGICK_VERSION=${{ matrix.imagemagick-version }} ./before_install_linux.sh
-    - name: Build and test with Rake
-      run: |
-        gem install bundler
-        bundle install --jobs 4 --retry 3
-        bundle exec rake
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: Set up Ruby ${{ matrix.ruby-version }}
+  #     uses: eregon/use-ruby-action@master
+  #     with:
+  #       ruby-version: ${{ matrix.ruby-version }}
+  #   - name: Update/Install packages
+  #     run: |
+  #       IMAGEMAGICK_VERSION=${{ matrix.imagemagick-version }} ./before_install_linux.sh
+  #   - name: Build and test with Rake
+  #     run: |
+  #       gem install bundler
+  #       bundle install --jobs 4 --retry 3
+  #       bundle exec rake
 
   test-windows:
     runs-on: windows-latest
@@ -75,11 +75,13 @@ jobs:
         $url = "https://ftp.icm.edu.pl/pub/graphics/ImageMagick/binaries/$($installer_name)"
         wget $url --progress=dot
         echo "before install"
-        $result = Invoke-Expression "./$($installer_name) /VERYSILENT /TASKS=install_Devel"
+        cmd.exe /D /S /C "./$($installer_name) /VERYSILENT /TASKS=install_Devel"
         echo $result
         echo "after install"
-        SET PATH="C:\Program Files\ImageMagick-$($imagemagick_version_without_patch)-Q16;%PATH%"
-        bundle install --path=vendor/bundle --retry 3
     - name: Build and test with Rake
       run: |
+        $imagemagick_version = "${{ matrix.imagemagick-version }}"
+        $imagemagick_version_without_patch = $imagemagick_version.split("-")[0]
+        SET PATH="C:\Program Files\ImageMagick-$($imagemagick_version_without_patch)-Q16;%PATH%"
+        bundle install --path=vendor/bundle --retry 3
         bundle exec rake
