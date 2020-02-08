@@ -80,6 +80,6 @@ jobs:
         echo "after install"
     - name: Build and test with Rake
       run: |
-        SET PATH="D:\ImageMagick;%PATH%"
+        SET PATH=D:\ImageMagick;%PATH%
         bundle install --path=vendor/bundle --retry 3
         bundle exec rake
