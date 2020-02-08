@@ -42,9 +42,7 @@ jobs:
         IMAGEMAGICK_VERSION=${{ matrix.imagemagick-version }} ./before_install_linux.sh
     - name: Build and test with Rake
       run: |
-        gem install bundler
-        bundle install --jobs 4 --retry 3
-        bundle exec rake
+        gem install bundler && bundle install --jobs 4 --retry 3 && bundle exec rake
 
   test-windows:
     runs-on: windows-latest
