@@ -82,6 +82,6 @@ jobs:
       run: |
         $imagemagick_version = "${{ matrix.imagemagick-version }}"
         $imagemagick_version_without_patch = $imagemagick_version.split("-")[0]
-        SET PATH="C:\Program Files\ImageMagick-$($imagemagick_version_without_patch)-Q16;%PATH%"
+        SET PATH="C:\Program Files\ImageMagick-$(imagemagick_version_without_patch)-Q16;%PATH%"
         bundle install --path=vendor/bundle --retry 3
         bundle exec rake
