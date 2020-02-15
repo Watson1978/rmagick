@@ -180,13 +180,21 @@ end
 require 'timeout'
 task :spec do
   Rake::Task[:compile].invoke
-  puts "**** Start running spec ****"
 
   require 'rspec/core/rake_task'
   RSpec::Core::RakeTask.new(:spec_core)
-  Timeout.timeout(5 * 60) {
-    Rake::Task[:spec_core].invoke
-  }
+
+  try_count = 0
+  begin
+    puts "**** Start running spec : #{try_count} ****"
+
+    try_count += 1
+    Timeout.timeout(2 * 60) {
+      Rake::Task[:spec_core].invoke
+    }
+  rescue Timeout::Error
+    retry if try_count < 3
+  end
 end
 
 if ENV['STYLE_CHECKS']
