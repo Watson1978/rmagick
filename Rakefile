@@ -172,14 +172,22 @@ END_HTML_TAIL
 end
 
 require 'rake/extensiontask'
-require 'rspec/core/rake_task'
-RSpec::Core::RakeTask.new(:spec)
 
 Rake::ExtensionTask.new('RMagick2') do |ext|
   ext.ext_dir = 'ext/RMagick'
 end
 
-task spec: :compile
+require 'timeout'
+task :spec do
+  Rake::Task[:compile].invoke
+  puts "**** Start running spec ****"
+
+  require 'rspec/core/rake_task'
+  RSpec::Core::RakeTask.new(:spec_core)
+  Timeout.timeout(5 * 60) {
+    Rake::Task[:spec_core].invoke
+  }
+end
 
 if ENV['STYLE_CHECKS']
   require 'rubocop/rake_task'
