@@ -186,10 +186,10 @@ task :spec do
 
   try_count = 0
   begin
-    puts "**** Start running spec : #{try_count} ****"
+    puts "**** Start running spec : try #{try_count + 1} times ****"
 
     try_count += 1
-    Timeout.timeout(2 * 60) {
+    Timeout.timeout(180) {
       Rake::Task[:spec_core].invoke
     }
   rescue Timeout::Error
