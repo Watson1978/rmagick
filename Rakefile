@@ -177,22 +177,24 @@ Rake::ExtensionTask.new('RMagick2') do |ext|
   ext.ext_dir = 'ext/RMagick'
 end
 
-require 'timeout'
 task :spec do
+  require 'timeout'
+
   Rake::Task[:compile].invoke
 
-  require 'rspec/core/rake_task'
-  RSpec::Core::RakeTask.new(:spec_core)
-
+  pid = nil
   try_count = 0
   begin
-    puts "**** Start running spec : try #{try_count + 1} times ****"
+    puts "\e[33mStart running spec\e[0m"
 
     try_count += 1
-    Timeout.timeout(180) {
-      Rake::Task[:spec_core].invoke
-    }
+    Timeout.timeout(180) do
+      pid = Process.spawn("bundle exec rspec")
+      Process.wait(pid)
+    end
   rescue Timeout::Error
+    puts "\e[31mTimeout error\e[0m"
+    Process.kill(:SIGKILL, pid)
     retry if try_count < 3
   end
 end
