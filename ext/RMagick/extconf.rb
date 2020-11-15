@@ -219,7 +219,16 @@ module RMagick
       fileinfo = `file #{command}`
 
       # default ARCHFLAGS
-      archs = $ARCH_FLAG.scan(/-arch\s+(\S+)/).flatten
+      if arch_names = RbConfig::CONFIG['UNIVERSAL_ARCHNAMES']
+        # macOS system bundled ruby might have following in rbconfig
+        #   "UNIVERSAL_ARCHNAMES"=>" arm64e=arm64e x86_64=x86_64"
+        archs = arch_names.split(' ').map do |arch|
+          arch = arch.include?('=') ? arch.split('=')[1] : ''
+          arch = 'arm64' if arch.include?('arm64')
+          arch
+        end.uniq
+      end
+      archs ||= []
 
       archflags = []
       archs.each do |arch|
