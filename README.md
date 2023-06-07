@@ -314,3 +314,5 @@ See <https://github.com/rmagick/rmagick/wiki/Release-Process>
 [imagemagick-forum]: https://imagemagick.org/discourse-server
 [dev-box]: https://github.com/tjschuck/rake-compiler-dev-box
 [vagrant]: https://www.vagrantup.com/
+
+test
