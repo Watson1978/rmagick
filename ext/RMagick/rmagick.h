@@ -540,6 +540,8 @@ extern const rb_data_type_t rm_kernel_info_data_type;
 // the same source file.
 
 
+extern "C" {
+
 // rmmain.cpp
 extern void Init_RMagick2(void);
 
@@ -1217,5 +1219,7 @@ extern void   rm_check_image_exception(Image *, ErrorRetention);
     #define RESCUE_FUNC(func)                   (VALUE(*)(VALUE))(func)
     #define RESCUE_EXCEPTION_HANDLER_FUNC(func) (VALUE(*)(VALUE, VALUE))(func)
 #endif
+
+} // extern "C"
 
 #endif
