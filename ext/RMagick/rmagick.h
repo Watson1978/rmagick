@@ -16,15 +16,19 @@
 //! Suppress warnings about deprecated functions on Windows
 #define _CRT_SECURE_NO_DEPRECATE 1
 
-#include <assert.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <math.h>
-#include <sys/types.h>
-#include "ruby.h"
-#include "ruby/io.h"
-#include "rmagick_gvl.h"
+#include "ruby/defines.h"
+
+extern "C" {
+    #include <assert.h>
+    #include <stdio.h>
+    #include <ctype.h>
+    #include <stdlib.h>
+    #include <math.h>
+    #include <sys/types.h>
+    #include "ruby.h"
+    #include "ruby/io.h"
+    #include "rmagick_gvl.h"
+}
 
 #if defined(__MINGW32__)
     // Ruby defines wrong format specifiers for MinGW. So this defines original macro in here.
