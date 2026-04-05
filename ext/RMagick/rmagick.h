@@ -837,11 +837,7 @@ extern VALUE Image_compare_channel(int, VALUE *, VALUE);
 extern VALUE Image_channel_depth(int, VALUE *, VALUE);
 extern VALUE Image_channel_extrema(int, VALUE *, VALUE);
 extern VALUE Image_channel_mean(int, VALUE *, VALUE);
-#if defined(HAVE_GETIMAGECHANNELENTROPY) || defined(IMAGEMAGICK_7)
 extern VALUE Image_channel_entropy(int, VALUE *, VALUE);
-#else
-extern VALUE Image_channel_entropy(int, VALUE *, VALUE) ATTRIBUTE_NORETURN;
-#endif
 extern VALUE Image_charcoal(int, VALUE *, VALUE);
 extern VALUE Image_chop(VALUE, VALUE, VALUE, VALUE, VALUE);
 extern VALUE Image_clone(VALUE);
@@ -1177,7 +1173,6 @@ extern double rm_str_to_pct(VALUE, bool);
 extern VALUE  rm_define_enum_type(const char *);
 extern void   rm_write_temp_image(Image *, char *, size_t);
 extern void   rm_delete_temp_image(char *);
-extern void   rm_not_implemented(void) ATTRIBUTE_NORETURN;
 extern void   rm_attr_write(VALUE, VALUE);
 extern const char *rm_get_property(const Image *, const char *);
 extern MagickBooleanType rm_set_property(Image *, const char *, const char *);
@@ -1216,13 +1211,6 @@ extern void   rm_raise_exception(ExceptionInfo *);
 extern VALUE  rm_io_path(VALUE);
 #if defined(IMAGEMAGICK_6)
 extern void   rm_check_image_exception(Image *, ErrorRetention);
-#endif
-
-#if !defined(IMAGEMAGICK_GREATER_THAN_EQUAL_6_9_0)
-/* UnityAddKernelInfo() was private function until IM 6.9 */
-MagickExport void UnityAddKernelInfo(KernelInfo *kernel, const double scale);
-/* ScaleKernelInfo() was private function until IM 6.9 */
-MagickExport void ScaleKernelInfo(KernelInfo *kernel, const double scaling_factor, const GeometryFlags normalize_flags);
 #endif
 
 #define RESCUE_FUNC(func)                   (VALUE(*)(VALUE))(func)

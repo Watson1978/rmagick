@@ -209,18 +209,7 @@ static void set_managed_memory(void)
         return;
     }
 
-#if defined(_WIN32)
-#if defined(IMAGEMAGICK_GREATER_THAN_EQUAL_6_9_0)
     managed_memory_enable(Qtrue);
-#else
-    // Disable managed memory feature with ImageMagick 6.8.x or below because causes crash.
-    // Refer https://ci.appveyor.com/project/mockdeep/rmagick/builds/24706171
-    managed_memory_enable(Qfalse);
-#endif
-#else
-    // Not Windows
-    managed_memory_enable(Qtrue);
-#endif
 }
 
 
@@ -1106,12 +1095,8 @@ Init_RMagick2(void)
         ENUMERATOR(YDbDrColorspace)
         ENUMERATORV(XyYColorspace, xyYColorspace)
 #if defined(IMAGEMAGICK_7)
-#if defined(IMAGEMAGICK_GREATER_THAN_EQUAL_7_0_8)
         ENUMERATOR(LinearGRAYColorspace)
-#endif
-#if defined(IMAGEMAGICK_GREATER_THAN_EQUAL_7_0_10)
         ENUMERATOR(JzazbzColorspace)
-#endif
 #elif defined(IMAGEMAGICK_GREATER_THAN_EQUAL_6_9_10)
         ENUMERATOR(LinearGRAYColorspace)
 #endif

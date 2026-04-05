@@ -11,7 +11,7 @@ module RMagick
     RMAGICK_VERS = ::Magick::VERSION
     MIN_RUBY_VERS = ::Magick::MIN_RUBY_VERSION
 
-    # ImageMagick 6.8+ packages
+    # ImageMagick 6 packages
     IM6_PACKAGES = %w[
       ImageMagick-6.Q64HDRI
       ImageMagick-6.Q32HDRI
@@ -259,10 +259,16 @@ module RMagick
 
       # Ensure minimum ImageMagick version
       # Check minimum ImageMagick version if possible
-      checking_for("outdated ImageMagick version (<= #{Magick::MIN_IM_VERSION})") do
+      checking_for("outdated ImageMagick version") do
         Logging.message("Detected ImageMagick version: #{$magick_version}\n")
 
-        exit_failure "Can't install RMagick #{RMAGICK_VERS}. You must have ImageMagick #{Magick::MIN_IM_VERSION} or later.\n" if Gem::Version.new($magick_version) < Gem::Version.new(Magick::MIN_IM_VERSION)
+        required_version = im_version_at_least?('7.0.0') ? Magick::MIN_IM7_VERSION : Magick::MIN_IM6_VERSION
+
+        if Gem::Version.new($magick_version) < Gem::Version.new(required_version)
+          exit_failure "Can't install RMagick #{RMAGICK_VERS}. You must have ImageMagick #{required_version} or later.\n"
+        end
+
+        false
       end
     end
 
@@ -277,7 +283,6 @@ module RMagick
         _aligned_msize
       ]
       imagemagick_api = [
-        'GetImageChannelEntropy', # 6.9.0-0
         'SetImageGray', # 6.9.1-10
         'SetMagickAlignedMemoryMethods' # 7.0.9-0
       ]
@@ -291,11 +296,8 @@ module RMagick
       $defs.push("-DRUBY_VERSION_STRING=\"ruby #{RUBY_VERSION}\"")
       $defs.push("-DRMAGICK_VERSION_STRING=\"RMagick #{RMAGICK_VERS}\"")
 
-      $defs.push('-DIMAGEMAGICK_GREATER_THAN_EQUAL_6_9_0=1') if im_version_at_least?('6.9.0')
       $defs.push('-DIMAGEMAGICK_GREATER_THAN_EQUAL_6_9_10=1') if im_version_at_least?('6.9.10')
       $defs.push('-DIMAGEMAGICK_7=1') if im_version_at_least?('7.0.0')
-      $defs.push('-DIMAGEMAGICK_GREATER_THAN_EQUAL_7_0_8=1') if im_version_at_least?('7.0.8')
-      $defs.push('-DIMAGEMAGICK_GREATER_THAN_EQUAL_7_0_10=1') if im_version_at_least?('7.0.10')
       $defs.push('-DIMAGEMAGICK_GREATER_THAN_EQUAL_7_1_2=1') if im_version_at_least?('7.1.2')
 
       create_header
@@ -371,27 +373,6 @@ at_exit do
 
       RMagick 7.0 will drop support for Ruby #{RUBY_VERSION}.
       Please upgrade to Ruby 3.2 or later.
-      =======================================================================
-    WARNING
-  end
-
-  if Gem::Version.new($magick_version) < Gem::Version.new('6.9.0')
-    message <<~"WARNING"
-      =======================================================================
-      DEPRECATION WARNING
-
-      RMagick 7.0 will drop support for ImageMagick #{$magick_version}.
-      Please upgrade to ImageMagick 6.9.0 or later.
-      =======================================================================
-    WARNING
-  end
-  if Gem::Version.new($magick_version) >= Gem::Version.new('7.0.0') && Gem::Version.new($magick_version) < Gem::Version.new('7.1.0')
-    message <<~"WARNING"
-      =======================================================================
-      DEPRECATION WARNING
-
-      RMagick 7.0 will drop support for ImageMagick #{$magick_version}.
-      Please upgrade to ImageMagick 7.1.0 or later.
       =======================================================================
     WARNING
   end
