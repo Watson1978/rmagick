@@ -136,12 +136,21 @@ get_kernel_info(VALUE self)
 {
     KernelInfo *kernel;
 
-    rm_gvl_wait_for_offload(self);
     TypedData_Get_Struct(self, KernelInfo, &rm_kernel_info_data_type, kernel);
     if (!kernel)
     {
         rb_raise(rb_eRuntimeError, "KernelInfo has not been initialized");
     }
+    return kernel;
+}
+
+
+static KernelInfo *
+get_writable_kernel_info(VALUE self)
+{
+    KernelInfo *kernel = get_kernel_info(self);
+
+    rm_gvl_check_writable(kernel);
     return kernel;
 }
 
@@ -154,7 +163,7 @@ get_kernel_info(VALUE self)
 VALUE
 KernelInfo_unity_add(VALUE self, VALUE scale)
 {
-    GVL_STRUCT_TYPE(UnityAddKernelInfo) args = { get_kernel_info(self), NUM2DBL(scale) };
+    GVL_STRUCT_TYPE(UnityAddKernelInfo) args = { get_writable_kernel_info(self), NUM2DBL(scale) };
     CALL_FUNC_WITHOUT_GVL(GVL_FUNC(UnityAddKernelInfo), &args);
     return Qnil;
 }
@@ -175,7 +184,7 @@ KernelInfo_scale(VALUE self, VALUE scale, VALUE flags)
 
     VALUE_TO_ENUM(flags, geoflags, GeometryFlags);
 
-    GVL_STRUCT_TYPE(ScaleKernelInfo) args = { get_kernel_info(self), NUM2DBL(scale), geoflags };
+    GVL_STRUCT_TYPE(ScaleKernelInfo) args = { get_writable_kernel_info(self), NUM2DBL(scale), geoflags };
     CALL_FUNC_WITHOUT_GVL(GVL_FUNC(ScaleKernelInfo), &args);
     return Qnil;
 }
@@ -189,10 +198,9 @@ KernelInfo_scale(VALUE self, VALUE scale, VALUE flags)
 VALUE
 KernelInfo_scale_geometry(VALUE self, VALUE geometry)
 {
-    KernelInfo *kernel = get_kernel_info(self);
     char *geom = StringValueCStr(geometry);
 
-    GVL_STRUCT_TYPE(ScaleGeometryKernelInfo) args = { kernel, geom };
+    GVL_STRUCT_TYPE(ScaleGeometryKernelInfo) args = { get_writable_kernel_info(self), geom };
     CALL_FUNC_WITHOUT_GVL(GVL_FUNC(ScaleGeometryKernelInfo), &args);
 
     RB_GC_GUARD(geometry);
