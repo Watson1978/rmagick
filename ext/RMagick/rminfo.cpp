@@ -36,10 +36,27 @@ get_writable_info(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     rm_gvl_check_writable(info);
     return info;
 }
+
+//! define attribute reader of Info
+#define IMPLEMENT_INFO_ATTR_READER(attr, type) \
+    {\
+        Info *info = rm_info_get(self);\
+        return C_##type##_to_R_##type(info->attr);\
+    }
+
+//! define attribute writer of Info
+#define IMPLEMENT_INFO_ATTR_WRITER(attr, type) \
+    {\
+        Info *info;\
+        rb_check_frozen(self);\
+        info = get_writable_info(self);\
+        info->attr = R_##type##_to_C_##type(val);\
+        return val;\
+    }
 
 /**
  * Return the value of the specified option.
@@ -56,7 +73,7 @@ get_option(VALUE self, const char *key)
     Info *info;
     const char *value;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     value = GetImageOption(info, key);
     if (value)
@@ -184,7 +201,7 @@ static VALUE get_dbl_option(VALUE self, const char *option)
     double d;
     long n;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     value = GetImageOption(info, option);
     if (!value)
@@ -262,7 +279,7 @@ static VALUE set_dbl_option(VALUE self, const char *option, VALUE value)
 VALUE
 Info_antialias(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, antialias, boolean, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(antialias, boolean);
 }
 
 /**
@@ -274,7 +291,7 @@ Info_antialias(VALUE self)
 VALUE
 Info_antialias_eq(VALUE self, VALUE val)
 {
-    IMPLEMENT_TYPED_ATTR_WRITER(Info, antialias, boolean, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_WRITER(antialias, boolean);
 }
 
 /** Maximum length of a format (@see Info_aref) */
@@ -328,7 +345,7 @@ Info_aref(int argc, VALUE *argv, VALUE self)
 
     }
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     value = GetImageOption(info, fkey);
     if (!value)
     {
@@ -462,7 +479,7 @@ Info_authenticate(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 #if defined(IMAGEMAGICK_7)
     return C_str_to_R_str(GetImageOption(info, "authenticate"));
 #else
@@ -526,7 +543,7 @@ Info_background_color(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return rm_pixelcolor_to_color_name_info(info, &info->background_color);
 }
 
@@ -559,7 +576,7 @@ Info_border_color(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return rm_pixelcolor_to_color_name_info(info, &info->border_color);
 }
 
@@ -653,7 +670,7 @@ Info_colorspace(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return ColorspaceType_find(info->colorspace);
 }
 
@@ -707,7 +724,7 @@ Info_compression(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return CompressionType_find(info->compression);
 }
 
@@ -795,7 +812,7 @@ Info_delay(VALUE self)
     const char *delay;
     char *p;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     delay = GetImageOption(info, "delay");
     if (delay)
@@ -870,7 +887,7 @@ Info_delay_eq(VALUE self, VALUE string)
 VALUE
 Info_density(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, density, str, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(density, str);
 }
 
 /**
@@ -918,7 +935,7 @@ Info_density_eq(VALUE self, VALUE density_arg)
 VALUE
 Info_depth(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, depth, int, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(depth, int);
 }
 
 /**
@@ -1017,7 +1034,7 @@ Info_dispose(VALUE self)
     ID dispose_id;
     const char *dispose;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     dispose_id = rb_intern("UndefinedDispose");
 
@@ -1084,7 +1101,7 @@ Info_dispose_eq(VALUE self, VALUE disp)
 VALUE
 Info_dither(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, dither, boolean, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(dither, boolean);
 }
 
 /**
@@ -1096,7 +1113,7 @@ Info_dither(VALUE self)
 VALUE
 Info_dither_eq(VALUE self, VALUE val)
 {
-    IMPLEMENT_TYPED_ATTR_WRITER(Info, dither, boolean, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_WRITER(dither, boolean);
 }
 
 
@@ -1110,7 +1127,7 @@ Info_endian(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return EndianType_find(info->endian);
 }
 
@@ -1147,7 +1164,7 @@ Info_endian_eq(VALUE self, VALUE endian)
 VALUE
 Info_extract(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, extract, str, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(extract, str);
 }
 
 /**
@@ -1200,7 +1217,7 @@ Info_filename(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return rb_str_new2(info->filename);
 }
 
@@ -1268,7 +1285,7 @@ Info_fill_eq(VALUE self, VALUE color)
 VALUE
 Info_font(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, font, str, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(font, str);
 }
 
 /**
@@ -1307,7 +1324,7 @@ VALUE Info_format(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     if (*info->magick)
     {
         const MagickInfo *magick_info;
@@ -1364,7 +1381,7 @@ Info_format_eq(VALUE self, VALUE magick)
 VALUE
 Info_fuzz(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, fuzz, dbl, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(fuzz, dbl);
 }
 
 /**
@@ -1447,7 +1464,7 @@ VALUE Info_gravity(VALUE self)
     const char *gravity;
     ID gravity_id;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     gravity_id = rb_intern("UndefinedGravity");
 
@@ -1518,7 +1535,7 @@ Info_image_type(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return ImageType_find(info->type);
 }
 
@@ -1548,7 +1565,7 @@ Info_interlace(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return InterlaceType_find(info->interlace);
 }
 
@@ -1603,7 +1620,7 @@ Info_matte_color(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return rm_pixelcolor_to_color_name_info(info, &info->matte_color);
 }
 
@@ -1632,7 +1649,7 @@ Info_matte_color_eq(VALUE self, VALUE matte_arg)
 VALUE
 Info_monochrome(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, monochrome, boolean, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(monochrome, boolean);
 }
 
 /**
@@ -1644,7 +1661,7 @@ Info_monochrome(VALUE self)
 VALUE
 Info_monochrome_eq(VALUE self, VALUE val)
 {
-    IMPLEMENT_TYPED_ATTR_WRITER(Info, monochrome, boolean, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_WRITER(monochrome, boolean);
 }
 
 /**
@@ -1655,7 +1672,7 @@ Info_monochrome_eq(VALUE self, VALUE val)
 VALUE
 Info_number_scenes(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, number_scenes, ulong, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(number_scenes, ulong);
 }
 
 /**
@@ -1667,7 +1684,7 @@ Info_number_scenes(VALUE self)
 VALUE
 Info_number_scenes_eq(VALUE self, VALUE val)
 {
-    IMPLEMENT_TYPED_ATTR_WRITER(Info, number_scenes, ulong, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_WRITER(number_scenes, ulong);
 }
 
 /**
@@ -1680,7 +1697,7 @@ Info_orientation(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return OrientationType_find(info->orientation);
 }
 
@@ -1714,7 +1731,7 @@ Info_origin(VALUE self)
     Info *info;
     const char *origin;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     origin = GetImageOption(info, "origin");
     return origin ? rb_str_new2(origin) : Qnil;
@@ -1775,7 +1792,7 @@ Info_page(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return info->page ? rb_str_new2(info->page) : Qnil;
 
 }
@@ -1827,7 +1844,7 @@ Info_page_eq(VALUE self, VALUE page_arg)
 VALUE
 Info_pointsize(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, pointsize, dbl, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(pointsize, dbl);
 }
 
 /**
@@ -1839,7 +1856,7 @@ Info_pointsize(VALUE self)
 VALUE
 Info_pointsize_eq(VALUE self, VALUE val)
 {
-    IMPLEMENT_TYPED_ATTR_WRITER(Info, pointsize, dbl, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_WRITER(pointsize, dbl);
 }
 
 /**
@@ -1850,7 +1867,7 @@ Info_pointsize_eq(VALUE self, VALUE val)
 VALUE
 Info_quality(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, quality, ulong, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(quality, ulong);
 }
 
 /**
@@ -1862,7 +1879,7 @@ Info_quality(VALUE self)
 VALUE
 Info_quality_eq(VALUE self, VALUE val)
 {
-    IMPLEMENT_TYPED_ATTR_WRITER(Info, quality, ulong, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_WRITER(quality, ulong);
 }
 
 /**
@@ -1875,7 +1892,7 @@ Info_sampling_factor(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     if (info->sampling_factor)
     {
         return rb_str_new2(info->sampling_factor);
@@ -1930,7 +1947,7 @@ Info_scene(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return  ULONG2NUM(info->scene);
 }
 
@@ -1965,7 +1982,7 @@ Info_scene_eq(VALUE self, VALUE scene)
 VALUE
 Info_server_name(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, server_name, str, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(server_name, str);
 }
 
 
@@ -2005,7 +2022,7 @@ Info_server_name_eq(VALUE self, VALUE server_arg)
 VALUE
 Info_size(VALUE self)
 {
-    IMPLEMENT_TYPED_ATTR_READER(Info, size, str, &rm_info_data_type);
+    IMPLEMENT_INFO_ATTR_READER(size, str);
 }
 
 /**
@@ -2146,7 +2163,7 @@ Info_tile_offset(VALUE self)
     Info *info;
     const char *tile_offset;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 
     tile_offset = GetImageOption(info, "tile-offset");
 
@@ -2202,7 +2219,7 @@ Info_transparent_color(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return rm_pixelcolor_to_color_name_info(info, &info->transparent_color);
 }
 
@@ -2290,7 +2307,7 @@ Info_units(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
     return ResolutionType_find(info->units);
 }
 
@@ -2320,7 +2337,7 @@ Info_view(VALUE self)
 {
     Info *info;
 
-    TypedData_Get_Struct(self, Info, &rm_info_data_type, info);
+    info = rm_info_get(self);
 #if defined(IMAGEMAGICK_7)
     return C_str_to_R_str(GetImageOption(info, "fpx:view"));
 #else
@@ -2377,21 +2394,26 @@ Info_view_eq(VALUE self, VALUE view_arg)
  *
  * No Ruby usage (internal function)
  *
- * @param infoptr pointer to the Info object
+ * @param infoptr pointer to the MagickImageInfo struct
  */
 static void
 Info_free(void *infoptr)
 {
-    Info *info = (Info *)infoptr;
+    MagickImageInfo *magick_image_info = (MagickImageInfo *)infoptr;
+    Info *info = magick_image_info->info;
 
-    if (info->texture)
+    if (info)
     {
-        rm_delete_temp_image(info->texture);
-        magick_free(info->texture);
-        info->texture = NULL;
-    }
+        if (info->texture)
+        {
+            rm_delete_temp_image(info->texture);
+            magick_free(info->texture);
+            info->texture = NULL;
+        }
 
-    DestroyImageInfo(info);
+        DestroyImageInfo(info);
+    }
+    xfree(magick_image_info);
 }
 
 /**
@@ -2399,12 +2421,14 @@ Info_free(void *infoptr)
   *
   * No Ruby usage (internal function)
   *
-  * @param infoptr pointer to the Info object
+  * @param infoptr pointer to the MagickImageInfo struct
   */
 static size_t
 Info_memsize(const void *infoptr)
 {
-    return sizeof(Info);
+    const MagickImageInfo *magick_image_info = (const MagickImageInfo *)infoptr;
+
+    return sizeof(MagickImageInfo) + (magick_image_info->info ? sizeof(Info) : 0);
 }
 
 /**
@@ -2418,15 +2442,15 @@ Info_memsize(const void *infoptr)
 VALUE
 Info_alloc(VALUE klass)
 {
-    Info *info;
+    MagickImageInfo *magick_image_info;
     VALUE info_obj;
 
-    info = CloneImageInfo(NULL);
-    if (!info)
+    info_obj = TypedData_Make_Struct(klass, MagickImageInfo, &rm_info_data_type, magick_image_info);
+    magick_image_info->info = CloneImageInfo(NULL);
+    if (!magick_image_info->info)
     {
         rb_raise(rb_eNoMemError, "not enough memory to initialize Info object");
     }
-    info_obj = TypedData_Wrap_Struct(klass, &rm_info_data_type, info);
 
     RB_GC_GUARD(info_obj);
 
@@ -2454,6 +2478,24 @@ rm_info_new(void)
     RB_GC_GUARD(info_obj);
 
     return Info_initialize(info_obj);
+}
+
+
+/**
+ * Get the ImageInfo of an Info object.
+ *
+ * No Ruby usage (internal function)
+ *
+ * @param obj the Info object
+ * @return the ImageInfo
+ */
+Info *
+rm_info_get(VALUE obj)
+{
+    MagickImageInfo *magick_image_info;
+
+    TypedData_Get_Struct(obj, MagickImageInfo, &rm_info_data_type, magick_image_info);
+    return magick_image_info->info;
 }
 
 

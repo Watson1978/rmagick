@@ -11,7 +11,7 @@
 
 #include "rmagick.h"
 
-static void rm_kernel_info_destroy(void *kernel);
+static void rm_kernel_info_destroy(void *ptr);
 static size_t rm_kernel_info_memsize(const void *ptr);
 
 const rb_data_type_t rm_kernel_info_data_type = {
@@ -31,14 +31,19 @@ DEFINE_GVL_VOID_STUB2(ScaleGeometryKernelInfo, KernelInfo *, const char *);
  *
  * No Ruby usage (internal function)
  *
- * @param kernel pointer to the KernelInfo object associated with instance
+ * @param ptr pointer to the MagickKernelInfo struct
  */
 
 static void
-rm_kernel_info_destroy(void *kernel)
+rm_kernel_info_destroy(void *ptr)
 {
-    if (kernel)
-      DestroyKernelInfo((KernelInfo*)kernel);
+    MagickKernelInfo *magick_kernel = (MagickKernelInfo *)ptr;
+
+    if (magick_kernel->kernel)
+    {
+        DestroyKernelInfo(magick_kernel->kernel);
+    }
+    xfree(magick_kernel);
 }
 
 /**
@@ -46,13 +51,13 @@ rm_kernel_info_destroy(void *kernel)
   *
   * No Ruby usage (internal function)
   *
-  * @param ptr pointer to the KernelInfo object
+  * @param ptr pointer to the MagickKernelInfo struct
   */
 static size_t
 rm_kernel_info_memsize(const void *ptr)
 {
-    const KernelInfo *kernel = (const KernelInfo *)ptr;
-    size_t size = 0;
+    const KernelInfo *kernel = ((const MagickKernelInfo *)ptr)->kernel;
+    size_t size = sizeof(MagickKernelInfo);
 
     // A KernelInfo may be a linked list of kernels, each owning a values array.
     while (kernel)
@@ -76,7 +81,45 @@ rm_kernel_info_memsize(const void *ptr)
 VALUE
 KernelInfo_alloc(VALUE klass)
 {
-    return TypedData_Wrap_Struct(klass, &rm_kernel_info_data_type, NULL);
+    MagickKernelInfo *magick_kernel;
+
+    return TypedData_Make_Struct(klass, MagickKernelInfo, &rm_kernel_info_data_type, magick_kernel);
+}
+
+
+/**
+ * Get the KernelInfo struct of a KernelInfo object.
+ *
+ * No Ruby usage (internal function)
+ *
+ * @param obj the KernelInfo object
+ * @return the KernelInfo struct, or NULL before the object is initialized
+ */
+KernelInfo *
+rm_kernel_info_get(VALUE obj)
+{
+    MagickKernelInfo *magick_kernel;
+
+    TypedData_Get_Struct(obj, MagickKernelInfo, &rm_kernel_info_data_type, magick_kernel);
+    return magick_kernel->kernel;
+}
+
+
+/**
+ * Store a KernelInfo struct in a KernelInfo object.
+ *
+ * No Ruby usage (internal function)
+ *
+ * @param obj the KernelInfo object
+ * @param kernel the KernelInfo struct
+ */
+void
+rm_kernel_info_set(VALUE obj, KernelInfo *kernel)
+{
+    MagickKernelInfo *magick_kernel;
+
+    TypedData_Get_Struct(obj, MagickKernelInfo, &rm_kernel_info_data_type, magick_kernel);
+    magick_kernel->kernel = kernel;
 }
 
 /**
@@ -127,13 +170,13 @@ KernelInfo_initialize(VALUE self, VALUE kernel_string)
         rb_raise(rb_eRuntimeError, "failed to parse kernel string");
     }
 
-    old_kernel = (KernelInfo *)DATA_PTR(self);
+    old_kernel = rm_kernel_info_get(self);
     if (old_kernel && rm_gvl_in_use(old_kernel))
     {
         DestroyKernelInfo(kernel);
         rm_gvl_check_writable(old_kernel);
     }
-    DATA_PTR(self) = kernel;
+    rm_kernel_info_set(self, kernel);
     if (old_kernel)
     {
         DestroyKernelInfo(old_kernel);
@@ -160,7 +203,7 @@ get_kernel_info(VALUE self)
 {
     KernelInfo *kernel;
 
-    TypedData_Get_Struct(self, KernelInfo, &rm_kernel_info_data_type, kernel);
+    kernel = rm_kernel_info_get(self);
     if (!kernel)
     {
         rb_raise(rb_eRuntimeError, "KernelInfo has not been initialized");
@@ -270,13 +313,13 @@ KernelInfo_init_copy(VALUE self, VALUE orig)
         rb_raise(rb_eNoMemError, "not enough memory to continue");
     }
 
-    old_kernel = (KernelInfo *)DATA_PTR(self);
+    old_kernel = rm_kernel_info_get(self);
     if (old_kernel && rm_gvl_in_use(old_kernel))
     {
         DestroyKernelInfo(kernel);
         rm_gvl_check_writable(old_kernel);
     }
-    DATA_PTR(self) = kernel;
+    rm_kernel_info_set(self, kernel);
     if (old_kernel)
     {
         DestroyKernelInfo(old_kernel);
@@ -300,6 +343,7 @@ KernelInfo_init_copy(VALUE self, VALUE orig)
 VALUE
 KernelInfo_builtin(VALUE self, VALUE what, VALUE geometry)
 {
+    VALUE kernel_obj;
     KernelInfo *kernel;
     KernelInfoType kernel_type;
     GeometryInfo info;
@@ -326,6 +370,8 @@ KernelInfo_builtin(VALUE self, VALUE what, VALUE geometry)
         rb_raise(rb_eArgError, "geometry string too long");
     }
 
+    kernel_obj = KernelInfo_alloc(self);
+
 #if defined(IMAGEMAGICK_7)
     exception = AcquireExceptionInfo();
     kernel = AcquireKernelInfo(kernel_string, exception);
@@ -348,5 +394,6 @@ KernelInfo_builtin(VALUE self, VALUE what, VALUE geometry)
         rb_raise(rb_eRuntimeError, "failed to acquire builtin kernel");
     }
 
-    return TypedData_Wrap_Struct(self, &rm_kernel_info_data_type, kernel);
+    rm_kernel_info_set(kernel_obj, kernel);
+    return kernel_obj;
 }

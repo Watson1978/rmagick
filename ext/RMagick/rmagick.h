@@ -201,6 +201,18 @@ typedef struct
     Image *image; /**< the ImageMagick image, or NULL after Image#destroy! */
 } MagickImage;
 
+//! Info class.
+typedef struct
+{
+    Info *info; /**< the ImageInfo */
+} MagickImageInfo;
+
+//! KernelInfo class.
+typedef struct
+{
+    KernelInfo *kernel; /**< the KernelInfo, or NULL before KernelInfo#initialize */
+} MagickKernelInfo;
+
 //! Montage
 typedef struct
 {
@@ -468,17 +480,6 @@ extern const rb_data_type_t rm_kernel_info_data_type;
         return C_##type##_to_R_##type(ptr->attr);\
     }
 
-//! define attribute writer
-#define IMPLEMENT_TYPED_ATTR_WRITER(klass, attr, type, data_type) \
-    {\
-        klass *ptr;\
-        rb_check_frozen(self);\
-        TypedData_Get_Struct(self, klass, data_type, ptr);\
-        rm_gvl_check_writable(ptr);\
-        ptr->attr = R_##type##_to_C_##type(val);\
-        return val;\
-    }
-
 //! define attribute reader of Image when attribute name is different from the field name
 #define IMPLEMENT_IMAGE_ATTR_READERF(attr, field, type) \
     {\
@@ -720,12 +721,15 @@ extern VALUE Info_channel(int, VALUE *, VALUE);
 extern VALUE Info_undefine(VALUE, VALUE, VALUE);
 extern VALUE Info_initialize(VALUE);
 extern VALUE rm_info_new(void);
+extern Info *rm_info_get(VALUE);
 extern DisposeType rm_dispose_to_enum(const char *);
 extern GravityType rm_gravity_to_enum(const char *);
 
 // rmkinfo.cpp
 
 extern VALUE KernelInfo_alloc(VALUE);
+extern KernelInfo *rm_kernel_info_get(VALUE);
+extern void rm_kernel_info_set(VALUE, KernelInfo *);
 
 extern VALUE KernelInfo_initialize(VALUE, VALUE);
 extern VALUE KernelInfo_unity_add(VALUE, VALUE);
