@@ -852,6 +852,17 @@ struct Draw_annotate_args
 };
 
 
+// Change back the affine matrix that the block of Draw#annotate may have changed
+static void
+restore_affine(struct Draw_annotate_args *annotate)
+{
+    if (memcmp(&annotate->draw->info->affine, &annotate->keep, sizeof(annotate->keep)) != 0)
+    {
+        annotate->draw->info->affine = annotate->keep;
+    }
+}
+
+
 /**
  * Release what annotate_body acquired and restore the affine matrix.
  *
@@ -865,12 +876,8 @@ static VALUE
 annotate_ensure(VALUE arg)
 {
     struct Draw_annotate_args *annotate = (struct Draw_annotate_args *)arg;
-    MagickDraw *draw = annotate->draw;
 
-    if (!rm_gvl_in_use(annotate->self))
-    {
-        draw->info->affine = annotate->keep;
-    }
+    restore_affine(annotate);
 
 #if defined(IMAGEMAGICK_7)
     if (annotate->exception)
@@ -937,9 +944,10 @@ annotate_body(VALUE arg)
     // Ruby -- Image#columns, Image#filename, Image#artifact and so on.
     embed_text = StringValueCStr(annotate->text);
     image = rm_check_frozen(annotate->image_arg);
-    rm_gvl_check_writable(annotate->self);
+    rm_gvl_check_readable(annotate->self);
 
     info = CloneDrawInfo(NULL, draw->info);
+    restore_affine(annotate);
     magick_clone_string(&info->geometry, geometry_str);
     magick_clone_string(&info->text, embed_text);
 
@@ -949,7 +957,7 @@ annotate_body(VALUE arg)
 #else
     DECLARE_GVL_CALL(call, AnnotateImage, image, info);
 #endif
-    call.update(annotate->image_arg).update(annotate->self).release(info).run<void>();
+    call.update(annotate->image_arg).read(annotate->self).release(info).run<void>();
     DestroyDrawInfo(info);
 
 #if defined(IMAGEMAGICK_7)
@@ -995,7 +1003,7 @@ VALUE Draw_annotate(
     // Save the affine matrix in case it is modified by
     // Draw#rotation=
     annotate.draw = get_draw(self);
-    rm_gvl_check_writable(self);
+    rm_gvl_check_readable(self);
     annotate.keep = annotate.draw->info->affine;
 
     annotate.self       = self;

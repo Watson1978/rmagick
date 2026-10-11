@@ -28,8 +28,11 @@
       SetPixelChannelMask(result, channel_mask);
 
 #define BEGIN_CHANNEL_CLONE(clone, image, channels) \
+    BEGIN_CHANNEL_CLONE_RELEASING(clone, image, channels, NULL, NULL)
+
+#define BEGIN_CHANNEL_CLONE_RELEASING(clone, image, channels, release, ptr) \
   { \
-    Image *clone = shallow_clone(image, exception); \
+    Image *clone = shallow_clone(image, exception, release, ptr); \
     ChannelType channel_mask = SetPixelChannelMask(clone, (ChannelType)channels);
 
 #define END_CHANNEL_CLONE(clone) \
@@ -311,21 +314,40 @@ DEFINE_GVL_STUB2(SyncCacheViewAuthenticPixels, CacheView *, ExceptionInfo *);
 DEFINE_GVL_STUB4(RotationalBlurImageChannel, const Image *, const ChannelType, const double, ExceptionInfo *);
 #endif
 
-// A copy of the image that shares its pixels, for a call to change in place of
-// the image, which others may share
+// A copy of the image that shares its pixels and blob, for a call to change in
+// place of the image, which others may share. If the copy fails, release(ptr)
+// frees what the caller allocated before raising.
 static Image *
-shallow_clone(Image *image, ExceptionInfo *exception)
+shallow_clone(Image *image, ExceptionInfo *exception, void (*release)(void *) = NULL, void *ptr = NULL)
 {
-    Image *clone = CloneImage(image, 0, 0, MagickTrue, exception);
+    Image *clone = CloneImage(image, 0, 0, MagickFalse, exception);
 
-    rm_check_exception(exception, clone, DestroyOnError);
-    if (!clone)
+    if (!clone || exception->severity >= ErrorException)
     {
+        if (release)
+        {
+            release(ptr);
+        }
+        if (clone)
+        {
+            DestroyImage(clone);
+        }
+        rm_check_exception(exception, NULL, RetainOnError);
         DestroyExceptionInfo(exception);
         rb_raise(rb_eNoMemError, "not enough memory to continue");
     }
+    clone->next = NULL;
+    clone->previous = NULL;
     return clone;
 }
+
+#if defined(IMAGEMAGICK_7)
+static void
+destroy_kernel_info(void *ptr)
+{
+    DestroyKernelInfo((KernelInfo *)ptr);
+}
+#endif
 
 static void
 destroy_cache_view(void *ptr, intptr_t arg ATTRIBUTE_UNUSED)
@@ -2182,12 +2204,11 @@ border(int bang, VALUE self, VALUE width, VALUE height, VALUE color)
     ExceptionInfo *exception;
     RectangleInfo rect;
 
-    image = rm_image_get(self);
-
     memset(&rect, 0, sizeof(rect));
     rect.width = NUM2UINT(width);
     rect.height = NUM2UINT(height);
     Color_to_PixelColor(&new_border, color);
+    image = bang ? rm_check_frozen(self) : rm_check_readable(self);
 
     exception = AcquireExceptionInfo();
     clone = shallow_clone(image, exception);
@@ -5071,7 +5092,7 @@ Image_convolve_channel(int argc, VALUE *argv, VALUE self)
     exception = AcquireExceptionInfo();
 
 #if defined(IMAGEMAGICK_7)
-    BEGIN_CHANNEL_CLONE(masked, image, channels);
+    BEGIN_CHANNEL_CLONE_RELEASING(masked, image, channels, destroy_kernel_info, kernel);
     DECLARE_GVL_CALL(call, ConvolveImage, masked, kernel, exception);
     new_image = call.read(self).destroy(masked).release(kernel).release(exception).run<Image *>();
     CHANGE_RESULT_CHANNEL_MASK(new_image);
@@ -5605,6 +5626,7 @@ Image_deskew(int argc, VALUE *argv, VALUE self)
             break;
     }
 
+    image = rm_check_readable(self);
     exception = AcquireExceptionInfo();
     clone = shallow_clone(image, exception);
     if (*auto_crop_width && !SetImageArtifact(clone, "deskew:auto-crop", auto_crop_width))
@@ -14094,7 +14116,7 @@ Image_sparse_color(int argc, VALUE *argv, VALUE self)
 
     exception = AcquireExceptionInfo();
 #if defined(IMAGEMAGICK_7)
-    BEGIN_CHANNEL_CLONE(masked, image, channels);
+    BEGIN_CHANNEL_CLONE_RELEASING(masked, image, channels, ruby_xfree, args);
     DECLARE_GVL_CALL(call, SparseColorImage, masked, method, nargs, args, exception);
     new_image = call.read(self).destroy(masked).free_buffer(args).release(exception).run<Image *>();
     CHANGE_RESULT_CHANNEL_MASK(new_image);
@@ -14154,6 +14176,7 @@ Image_splice(int argc, VALUE *argv, VALUE self)
     rectangle.y      = NUM2LONG(argv[1]);
     rectangle.width  = NUM2ULONG(argv[2]);
     rectangle.height = NUM2ULONG(argv[3]);
+    image = rm_check_readable(self);
 
     exception = AcquireExceptionInfo();
     clone = shallow_clone(image, exception);
@@ -14260,6 +14283,7 @@ Image_stegano(VALUE self, VALUE watermark_image, VALUE offset)
     watermark = rm_check_readable(wm_image);
 
     pixel_offset = NUM2LONG(offset);
+    image = rm_check_readable(self);
 
     exception = AcquireExceptionInfo();
     clone = shallow_clone(image, exception);
